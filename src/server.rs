@@ -7,6 +7,7 @@
 // pub keyword makes the struct public
 
 use std::net::TcpListener;
+use std::io::Read;
 
 pub struct Server {
     addr: String,
@@ -56,8 +57,22 @@ impl Server {
           //   _ => println!("not interesting"),
           // }
           match listener.accept() {
-              Ok((stream, _)) => {
+              Ok((mut stream, _)) => {
                 println!("Accepted a connection");
+                // read the request
+                // we can use a buffer to store the data
+                // we need to specify the type of the buffer(array)
+                // here we speicify buf is an array of 1024 bytes with default value 0
+                let mut buf = [0; 1024];
+                match stream.read(&mut buf) {
+                    Ok(_) => {
+                        // convert the buffer to a string
+                        // String::from_utf8_lossy will replace any invalid UTF-8 sequences with �
+                        // if we want to handle invalid UTF-8 sequences, we can use String::from_utf8, it will terminate the program if it encounters invalid UTF-8 sequences
+                        println!("Request: {}", String::from_utf8_lossy(&buf));
+                    }
+                    Err(e) => println!("Failed to read from connection: {}", e),
+                }
               }
               Err(e) => println!("Failed to establish a connection: {}", e),
           }

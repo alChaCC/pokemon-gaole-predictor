@@ -9,6 +9,7 @@ BODY
 // Some is a tuple struct that wraps a String
 // None is a unit struct that doesn't hold any value
 // Option<T> will automatically be imported into scope when we use it
+use super::Method;
 pub struct Request {
   path: String,
   query_string: Option<String>,
