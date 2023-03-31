@@ -63,6 +63,26 @@ impl TryFrom<&[u8]> for Request {
     // so buf need to implement From<Utf8Error> for ParseError
     // please check line: 76
     let request = str::from_utf8(buf)?;
+
+    // way 1
+    // match get_next_word(request) {
+    //     Some((method, request)) => match method {
+    //         "GET" => {},
+    //         _ => return Err(ParseError::InvalidMethod),
+    //     },
+    //     None => return Err(ParseError::InvalidRequest),
+    // }
+
+    // way 2
+    let (method, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
+    let (path, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
+    let (protocal, _) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
+
+    if protocal != "HTTP/1.1" {
+      return Err(ParseError::InvalidProtocol);
+    }
+
+    unimplemented!()
   }
 }
 
@@ -77,6 +97,30 @@ impl From<Utf8Error> for ParseError {
   fn from(_: Utf8Error) -> Self {
     Self::InvalidEncoding
   }
+}
+
+fn get_next_word(request: &str) -> Option<(&str, &str)> {
+  // way 1
+  // let mut iter = request.chars();
+  // loop {
+  //   let item = iter.next();
+  //   match item {
+  //     Some(' ') => continue,
+  //     Some(_) => break,
+  //     None => return None,
+  //   }
+  // }
+
+  // way 2
+  // use enumerate to get the index of the character
+  for (i, c) in request.chars().enumerate() {
+    if c == ' ' || c == '\r' {
+      // it's dangerous to use &request[i+1..] because string could be emoji
+      // but here we know we're skip a space which is for sure 1 byte so it's safe to to +1
+      return Some((&request[..i], &request[i + 1..]));
+    }
+  }
+  None
 }
 
 impl ParseError {
