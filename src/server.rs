@@ -74,13 +74,14 @@ impl Server {
                       let response = match Request::try_from(&buf[..]) {
                         Ok(request) => {
                           dbg!(request);
-                          let response = Response::new(StatusCode::Ok200, Some("<h1>It works!</h1>".to_string()));
+                          Response::new(
+                            StatusCode::Ok200,
+                            Some("<h1>It works!</h1>".to_string()))
                           // write!(stream, "{}", response);
-                          response.send(&mut stream);
                         }
                         Err(e) => {
                           println!("Failed to parse a request: {}", e);
-                          Response::new(StatusCode::BadRequest400, None);
+                          Response::new(StatusCode::BadRequest400, None)
                         }
                       };
 
