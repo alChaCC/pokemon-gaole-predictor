@@ -35,9 +35,24 @@ use super::{QueryString};
 // It allows us to communicate to the compiler that some references are "related" and are expected to share the same lifetime.
 #[derive(Debug)] // derive macro will implement the Debug trait for us, so we can print the struct
 pub struct Request<'buf> {
-  pub path: &'buf str,
+  path: &'buf str,
   query_string: Option<QueryString<'buf>>,
-  pub method: Method,
+  method: Method,
+}
+
+impl<'buf> Request<'buf> {
+  pub fn path(&self) -> &str {
+   &self.path
+  }
+
+  pub fn method(&self) -> &Method {
+    &self.method
+  }
+
+  pub fn query_string(&self) -> Option<&QueryString> {
+    // use as_ref() to get the reference of the value
+    self.query_string.as_ref()
+  }
 }
 
 // trait is a way to define shared behavior in an abstract way, similar to interface in other languages like Java, Go, etc.

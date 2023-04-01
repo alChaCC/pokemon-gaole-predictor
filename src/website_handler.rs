@@ -25,8 +25,8 @@ impl Handler for WebsiteHandler {
         //         Some("<h1>Not Found</h1>".to_string()),
         //     ),
         // }
-        let response = match request.method {
-            crate::http::Method::GET => match request.path {
+        let response = match request.method() {
+            crate::http::Method::GET => match request.path() {
                 "/" => crate::http::Response::new(
                     crate::http::StatusCode::Ok200,
                     Some("<h1>Welcome</h1>".to_string()),
