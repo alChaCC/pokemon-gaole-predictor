@@ -72,7 +72,7 @@ impl Server {
                         // if we want to handle invalid UTF-8 sequences, we can use String::from_utf8, it will terminate the program if it encounters invalid UTF-8 sequences
                         println!("Request: {}", String::from_utf8_lossy(&buf));
                         match Request::try_from(&buf[..]) {
-                            Ok(request) => {}
+                            Ok(request) => {dbg!(request);}
                             Err(e) => println!("Failed to parse a request: {}", e),
                         }
                     }
