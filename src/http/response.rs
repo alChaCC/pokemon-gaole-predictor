@@ -19,6 +19,16 @@ impl Response {
 
   // write directly to the stream
   // this is the way we want to do
+  // here use &mut impl std::io::Write to make it more generic
+  // so we can pass in TcpStream or any other type that impl std::io::Write
+  // it called static dispatch because the compiler knows the type of stream at compile time
+  // in compile time it will know the type of stream and will generate the code for that type
+  // so it's faster
+  // example: if we pass in TcpStream, it will generate the code for TcpStream
+  // ex: pub fn sendTcpStream(&self, stream: &mut TcpStream) -> IoResult<()>
+  // if we pass in File, it will generate the code for File
+  // ex: pub fn sendFile(&self, stream: &mut File) -> IoResult<()>
+  // if we pass in Vec<u8>, it will generate the code for Vec<u8>
   pub fn send(&self, stream: &mut impl std::io::Write) -> IoResult<()> {
     let body = match &self.body {
       Some(b) => b,
