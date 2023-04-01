@@ -16,13 +16,28 @@ use std::fmt::{Display, Result as FmtResult, Formatter, Debug};
 use std::str;
 use std::str::Utf8Error;
 
-pub struct Request {
-  path: String,
-  query_string: Option<String>,
+// use &str because the request content is immutable
+// we can use String, but &str is more efficient because it doesn't require memory allocation
+// becareful with lifetimes!!!
+// if Request live longer than the buffer(&str), we will have a dangling pointer
+// so we need to specify the lifetime of the buffer(&str)
+
+// *******lifetime is super unique in Rust********
+// need to think about the lifetime of the reference
+// and specify the lifetime of the reference
+// so compiler can know how long the reference will live when doing static checking
+// we can use 'a to specify the lifetime of the reference
+// it's like a meta variable for compiler to check the lifetime of the reference
+
+// lifetime can help us avoid dangling pointer in Rust
+// we can use lifetime to specify the lifetime of the reference
+pub struct Request<'buf> {
+  path: &'buf str,
+  query_string: Option<&'buf str>,
   method: Method,
 }
 
-impl Request {
+impl Request<'_> {
     fn from_byte_array(buf: &[u8]) -> Result<Self, String> {
       // unimplemented!() is a macro that will panic when called
       unimplemented!()
@@ -35,12 +50,11 @@ impl Request {
 // TryFrom is a trait in the standard library that allows us to define a conversion between types
 // TryFrom is the opposite of From
 // TryFrom is used for fallible conversions, and From is used for infallible conversions
-impl TryFrom<&[u8]> for Request {
+impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
   // must give the type of the Error
   type Error = ParseError;
 
-
-  fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
+  fn try_from(buf: &'buf [u8]) -> Result<Self, Self::Error> {
     // way 1
     // match str::from_utf8(buf) {
     //   Ok(request) => {},
@@ -109,7 +123,11 @@ impl TryFrom<&[u8]> for Request {
       path = &path[..i];
     }
 
-    unimplemented!()
+    Ok(Self {
+      path: path,
+      query_string: query_string,
+      method,
+    })
   }
 }
 
