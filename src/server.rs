@@ -7,9 +7,9 @@
 // pub keyword makes the struct public
 
 use std::net::TcpListener;
-use std::io::Read;
+use std::io::{Write, Read};
 // use crate is similar to use super to access root module
-use crate::http::Request;
+use crate::http::{Response, Request, StatusCode};
 pub struct Server {
     addr: String,
 }
@@ -67,16 +67,31 @@ impl Server {
                 let mut buf = [0; 1024];
                 match stream.read(&mut buf) {
                     Ok(_) => {
-                        // convert the buffer to a string
-                        // String::from_utf8_lossy will replace any invalid UTF-8 sequences with �
-                        // if we want to handle invalid UTF-8 sequences, we can use String::from_utf8, it will terminate the program if it encounters invalid UTF-8 sequences
-                        println!("Request: {}", String::from_utf8_lossy(&buf));
-                        match Request::try_from(&buf[..]) {
-                            Ok(request) => {dbg!(request);}
-                            Err(e) => println!("Failed to parse a request: {}", e),
+                      // convert the buffer to a string
+                      // String::from_utf8_lossy will replace any invalid UTF-8 sequences with �
+                      // if we want to handle invalid UTF-8 sequences, we can use String::from_utf8, it will terminate the program if it encounters invalid UTF-8 sequences
+                      println!("Request: {}", String::from_utf8_lossy(&buf));
+                      let response = match Request::try_from(&buf[..]) {
+                        Ok(request) => {
+                          dbg!(request);
+                          let response = Response::new(StatusCode::Ok200, Some("<h1>It works!</h1>".to_string()));
+                          // write!(stream, "{}", response);
+                          response.send(&mut stream);
                         }
+                        Err(e) => {
+                          println!("Failed to parse a request: {}", e);
+                          Response::new(StatusCode::BadRequest400, None);
+                        }
+                      };
+
+                      if let Err(e) = response.send(&mut stream) {
+                        println!("Failed to send response: {}", e);
+                      }
                     }
-                    Err(e) => println!("Failed to read from connection: {}", e),
+                    Err(e) => {
+                      println!("Failed to read from connection: {}", e);
+                      Response::new(StatusCode::BadRequest400, None).send(&mut stream);
+                    },
                 }
               }
               Err(e) => println!("Failed to establish a connection: {}", e),
