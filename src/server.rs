@@ -9,7 +9,19 @@
 use std::net::TcpListener;
 use std::io::{Write, Read};
 // use crate is similar to use super to access root module
-use crate::http::{Response, Request, StatusCode};
+use crate::http::{Response, Request, StatusCode, ParseError};
+
+// let move OK(request) = ... more dynamic
+// we can let caller to decide what to do with the request
+pub trait Handler {
+  fn handle_request(&mut self, request: &Request) -> Response;
+  // we can use default implementation
+  fn handle_bad_request(&mut self, e: &ParseError) -> Response {
+    println!("Failed to parse a request: {}", e);
+    Response::new(StatusCode::BadRequest400, None)
+  }
+}
+
 pub struct Server {
     addr: String,
 }
@@ -28,7 +40,7 @@ impl Server {
   // if we want to mutate the instance, we can use &mut self
   // if we want to take ownership of self, we can use self
   // if we want to allow the method to be called on an immutable or mutable instance, we can use &self or &mut self
-  pub fn run(self) {
+  pub fn run(self, mut handler: impl Handler) {
       println!("Listening on {}", self.addr);
 
       // this is recoverable error, but we don't want to recover from it so we use unwrap.
@@ -72,17 +84,8 @@ impl Server {
                       // if we want to handle invalid UTF-8 sequences, we can use String::from_utf8, it will terminate the program if it encounters invalid UTF-8 sequences
                       println!("Request: {}", String::from_utf8_lossy(&buf));
                       let response = match Request::try_from(&buf[..]) {
-                        Ok(request) => {
-                          dbg!(request);
-                          Response::new(
-                            StatusCode::Ok200,
-                            Some("<h1>It works!</h1>".to_string()))
-                          // write!(stream, "{}", response);
-                        }
-                        Err(e) => {
-                          println!("Failed to parse a request: {}", e);
-                          Response::new(StatusCode::BadRequest400, None)
-                        }
+                        Ok(request) => handler.handle_request(&request),
+                        Err(e) => handler.handle_bad_request(&e)
                       };
 
                       if let Err(e) = response.send(&mut stream) {
