@@ -1,3 +1,6 @@
+// we tell compiler to ignore dead code warnings
+#![allow(dead_code)]
+
 // include the server module
 mod server;
 use server::Server; // once we include the server module, we can use the Server struct

@@ -31,6 +31,7 @@ use std::str::Utf8Error;
 
 // lifetime can help us avoid dangling pointer in Rust
 // we can use lifetime to specify the lifetime of the reference
+// It allows us to communicate to the compiler that some references are "related" and are expected to share the same lifetime.
 pub struct Request<'buf> {
   path: &'buf str,
   query_string: Option<&'buf str>,
