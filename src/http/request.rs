@@ -15,6 +15,7 @@ use std::error::Error;
 use std::fmt::{Display, Result as FmtResult, Formatter, Debug};
 use std::str;
 use std::str::Utf8Error;
+use super::{QueryString};
 
 // use &str because the request content is immutable
 // we can use String, but &str is more efficient because it doesn't require memory allocation
@@ -34,7 +35,7 @@ use std::str::Utf8Error;
 // It allows us to communicate to the compiler that some references are "related" and are expected to share the same lifetime.
 pub struct Request<'buf> {
   path: &'buf str,
-  query_string: Option<&'buf str>,
+  query_string: Option<QueryString<'buf>>,
   method: Method,
 }
 
@@ -120,7 +121,7 @@ impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
 
     // way 3 (common pattern in Rust), better solution
     if let Some(i) = path.find('?') {
-      query_string = Some(&path[i + 1..]);
+      query_string = Some(QueryString::from(&path[i + 1..]));
       path = &path[..i];
     }
 
