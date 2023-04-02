@@ -1,5 +1,13 @@
 use super::server::Handler;
-pub struct WebsiteHandler;
+pub struct WebsiteHandler {
+    public_path: String,
+}
+
+impl WebsiteHandler {
+    pub fn new(public_path: String) -> Self {
+        Self { public_path }
+    }
+}
 
 impl Handler for WebsiteHandler {
     fn handle_request(&mut self, request: &crate::http::Request) -> crate::http::Response {
